@@ -5,14 +5,14 @@ DeepSeek Harness（DSH）WebUI 的中国象棋人机对战插件「天界象棋�
 
 ## 功能特性
 
-- 输入框工具行左端「♟ 象棋」小开关打开浮窗面板（标题可拖拽移动）
+- 输入框工具行左端「♟ 象棋」小开关打开浮窗面板（标题可拖拽移动，**位置记忆**：拖到哪下次还在哪）
+- **行走历史在主页面右侧**（固定竖条，最新一手在最上面，以此类推），不占棋盘浮窗空间
 - 完整中国象棋规则：走法生成 / 将军 / 将死 / 困毙（和棋）/ 飞将判定，红先黑后
 - AI 执黑：alpha-beta 搜索（默认深度 3），AI 思考时面板有转圈提示和「本天使思考中…」
 - **莉娅有活台词**：开局 / 将军 / 被将军 / 吃子 / 首杀 / 兑子 / 兵过河 / 残局 / 昏招 / 悔棋 / 胜负 / 和棋
   各场景随机台词（移植自 chess-xq 的 `lines.ts`，原 web 版定义了但没接线，本插件接进对局事件）
 - 可悔棋（撤回一整轮：阁下 + AI）、保存 / 读取 / 删除存档（localStorage，FEN 格式）
 - 设置页可调 AI 难度（1~4 层搜索）
-- 落子记录：坐标 + 吃子提示，红黑分色
 
 ## AI 侧工具（模型可用）
 
@@ -38,8 +38,10 @@ dsh plugin --profile web add dsh-chess-xq-plugin-0.1.0.tgz
 
 ## 打包
 
+一键交付（重建 client → 语法自检 → 插件自检 → 打包 → git 提交，做减法）：
+
 ```powershell
-node skills/dsh-plugin-dev/scripts/pack-plugin.mjs dsh-chess-xq
+node skills/dsh-plugin-dev/scripts/deliver-plugin.mjs dsh-chess-xq [--version x.y.z] [--commit "消息"]
 ```
 
 产物 `dsh-chess-xq-plugin-<版本>.tgz` 输出到 `workspace/dsh-plugins/dist/`。
