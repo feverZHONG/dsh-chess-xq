@@ -41,10 +41,11 @@ dsh plugin --profile web add dsh-chess-xq-plugin-0.1.0.tgz
 一键交付（重建 client → 语法自检 → 插件自检 → 打包 → git 提交，做减法）：
 
 ```powershell
-node skills/dsh-plugin-dev/scripts/deliver-plugin.mjs dsh-chess-xq [--version x.y.z] [--commit "消息"]
+# deliver-plugin.mjs 在 dsh-plugin-dev skill 的 scripts/ 下（请替换为你本地的路径）
+node <你的 dsh-plugin-dev skill 路径>/scripts/deliver-plugin.mjs dsh-chess-xq [--version x.y.z] [--commit "消息"]
 ```
 
-产物 `dsh-chess-xq-plugin-<版本>.tgz` 输出到 `workspace/dsh-plugins/dist/`。
+产物 `dsh-chess-xq-plugin-<版本>.tgz` 输出到你的插件分发目录。
 
 ## 配置
 
