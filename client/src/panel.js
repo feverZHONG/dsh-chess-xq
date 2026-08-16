@@ -125,11 +125,44 @@ function ChessPanel() {
       '本天使思考中…');
   }
 
+  // 落子记录列（0.2.1：从独立浮条搬回面板，棋盘右侧；最新在上，随 bump 实时刷新）
+  var histItems = [];
+  if (!s.moveHistory.length) {
+    histItems.push(react.createElement('p', { key: 'empty', style: { margin: 0, fontSize: 12, color: 'var(--dsw-alias-label-tertiary, #999)' } }, '暂无记录'));
+  } else {
+    for (var hi = s.moveHistory.length - 1; hi >= 0; hi--) {
+      var hIsRed = hi % 2 === 0;
+      histItems.push(react.createElement('div', {
+        key: hi,
+        style: {
+          display: 'flex', gap: 8, alignItems: 'baseline', padding: '4px 0',
+          borderBottom: '1px solid var(--dsw-alias-border-l2, rgba(128,128,128,0.12))',
+        },
+      },
+        react.createElement('span', {
+          style: { minWidth: 24, fontSize: 11, color: 'var(--dsw-alias-label-tertiary, #999)', flex: 'none' },
+        }, Math.floor(hi / 2) + 1 + (hIsRed ? '红' : '黑')),
+        react.createElement('span', {
+          style: { fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+        }, core.formatMove(s.moveHistory[hi]))));
+    }
+  }
+  var historyCol = react.createElement('div', {
+    style: {
+      width: 200, flex: 'none', alignSelf: 'stretch',
+      padding: '8px 10px', borderRadius: 10,
+      background: 'var(--dsw-alias-bg-layer-1, rgba(255,255,255,0.5))',
+      display: 'flex', flexDirection: 'column', minHeight: 0, maxHeight: 500,
+    },
+  },
+    react.createElement('div', { style: { fontSize: 12, fontWeight: 600, marginBottom: 4, flex: 'none' } }, '落子记录'),
+    react.createElement('div', { style: { overflowY: 'auto', flex: '1 1 auto', minHeight: 0 } }, histItems));
+
   // 面板定位：记忆上次位置（0.2.0 修「界面不固定」），没有则默认右上角；
-  // 行走历史已迁到主页面右侧（history.js），本面板只留棋盘+控制
+  // 落子记录在棋盘右侧（0.2.1），本面板=棋盘+历史+控制一体
   if (!core.panelState.pos) {
     core.panelState.pos = core.loadPos() || {
-      x: Math.max(8, (window.innerWidth || 1200) - 560),
+      x: Math.max(8, (window.innerWidth || 1200) - 770),
       y: Math.max(8, 70),
     };
   }
@@ -171,7 +204,7 @@ function ChessPanel() {
   return react.createElement('div', {
     style: {
       position: 'fixed', left: pos.x, top: pos.y, zIndex: 3000,
-      width: 540, maxWidth: 'calc(100vw - 16px)',
+      width: 748, maxWidth: 'calc(100vw - 16px)',
       maxHeight: 'calc(100vh - 24px)', overflowY: 'auto',
       background: 'var(--dsw-alias-bg-layer-3, #ffffff)',
       color: 'var(--dsw-alias-label-primary, inherit)',
@@ -204,15 +237,17 @@ function ChessPanel() {
     react.createElement('div', { style: { padding: '6px 14px 14px' } },
       bubbleEl,
       react.createElement('div', { style: { fontSize: 14, fontWeight: 600 } }, statusText),
-      react.createElement('div', { style: { position: 'relative', width: 'max-content', maxWidth: '100%', margin: '6px auto 0' } },
-        react.createElement(boardMod.Board, {
-          board: s.board,
-          onCellClick: core.handleCell,
-          selectedSquare: s.selected,
-          legalMoves: s.legalMoves,
-          lastMove: s.lastMove,
-        }),
-        overlay),
+      react.createElement('div', { style: { display: 'flex', gap: 10, alignItems: 'stretch', margin: '6px 0 0' } },
+        react.createElement('div', { style: { position: 'relative', width: 'max-content', maxWidth: '100%', flex: 'none' } },
+          react.createElement(boardMod.Board, {
+            board: s.board,
+            onCellClick: core.handleCell,
+            selectedSquare: s.selected,
+            legalMoves: s.legalMoves,
+            lastMove: s.lastMove,
+          }),
+          overlay),
+        historyCol),
       controls,
       saveNodes,
       thinkingEl));

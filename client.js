@@ -1165,75 +1165,6 @@ window.__ModuleLoader__.load({
     };
     
     });
-    __def("history", function (module, exports, require) {
-    // dsh-chess-xq —— client 半 · 行走历史条（主页面右侧，shell.overlay 第二条目）
-    // 0.2.0：用户要求「行走历史迁移到主页面的右侧，上方是最新的行动」——
-    // 从棋盘浮窗里拿出来，做成固定在主窗口右侧中间的窄条，最新一手在最上面（倒序）。
-    // 与棋盘浮窗同生命周期：面板打开时显示，关闭时消失；数据走 core.store。
-    var react = require('react');
-    var core = require('core');
-    
-    function HistoryPanel() {
-      var tickState = react.useState(0);
-      var setTick = tickState[1];
-    
-      react.useEffect(function () {
-        function onEvt() { setTick(function (x) { return x + 1; }); }
-        window.addEventListener(core.PANEL_EVENT, onEvt);
-        return function () { window.removeEventListener(core.PANEL_EVENT, onEvt); };
-      }, []);
-    
-      if (!core.panelState.open) return null;
-    
-      var s = core.store;
-      var items = [];
-      if (!s.moveHistory.length) {
-        items.push(react.createElement('p', { key: 'empty', style: { margin: '4px 0', fontSize: 12, color: 'var(--dsw-alias-label-tertiary, #999)' } }, '暂无记录'));
-      } else {
-        // 倒序：最新在上，以此类推
-        for (var i = s.moveHistory.length - 1; i >= 0; i--) {
-          var isRed = i % 2 === 0;
-          items.push(react.createElement('div', {
-            key: i,
-            style: {
-              display: 'flex', gap: 8, alignItems: 'baseline', padding: '4px 0',
-              borderBottom: '1px solid var(--dsw-alias-border-l2, rgba(128,128,128,0.12))',
-            },
-          },
-            react.createElement('span', {
-              style: { minWidth: 20, fontSize: 11, color: 'var(--dsw-alias-label-tertiary, #999)', flex: 'none' },
-            }, Math.floor(i / 2) + 1 + (isRed ? '红' : '黑')),
-            react.createElement('span', {
-              style: { fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-            }, core.formatMove(s.moveHistory[i]))));
-        }
-      }
-    
-      return react.createElement('div', {
-        style: {
-          position: 'fixed', right: 10, top: '50%', transform: 'translateY(-50%)',
-          zIndex: 2900, width: 236, maxWidth: 'calc(100vw - 24px)',
-          maxHeight: '70vh', overflowY: 'auto',
-          background: 'var(--dsw-alias-bg-layer-3, #ffffff)',
-          color: 'var(--dsw-alias-label-primary, inherit)',
-          border: '1px solid var(--dsw-alias-border-l2, rgba(128,128,128,0.35))',
-          borderRadius: 12, boxShadow: '0 10px 32px rgba(0,0,0,0.25)',
-          fontFamily: 'system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif',
-          fontSize: 12, padding: '10px 12px', userSelect: 'none',
-        },
-      },
-        react.createElement('div', {
-          style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
-        },
-          react.createElement('span', { style: { fontWeight: 600, fontSize: 13 } }, '落子记录'),
-          react.createElement('span', { style: { fontSize: 11, color: 'var(--dsw-alias-label-tertiary, #999)' } },
-            s.moveHistory.length ? s.moveHistory.length + ' 手' : '') ),
-        items);
-    }
-    
-    module.exports = { HistoryPanel };
-    
-    });
     __def("lines", function (module, exports, require) {
     // dsh-chess-xq —— client 半 · 莉娅台词池（静态数据）
     // 移植自 chess-xq（web/src/assets/lines.ts）。原 web 版定义了但从未接线，
@@ -1588,11 +1519,44 @@ window.__ModuleLoader__.load({
           '本天使思考中…');
       }
     
+      // 落子记录列（0.2.1：从独立浮条搬回面板，棋盘右侧；最新在上，随 bump 实时刷新）
+      var histItems = [];
+      if (!s.moveHistory.length) {
+        histItems.push(react.createElement('p', { key: 'empty', style: { margin: 0, fontSize: 12, color: 'var(--dsw-alias-label-tertiary, #999)' } }, '暂无记录'));
+      } else {
+        for (var hi = s.moveHistory.length - 1; hi >= 0; hi--) {
+          var hIsRed = hi % 2 === 0;
+          histItems.push(react.createElement('div', {
+            key: hi,
+            style: {
+              display: 'flex', gap: 8, alignItems: 'baseline', padding: '4px 0',
+              borderBottom: '1px solid var(--dsw-alias-border-l2, rgba(128,128,128,0.12))',
+            },
+          },
+            react.createElement('span', {
+              style: { minWidth: 24, fontSize: 11, color: 'var(--dsw-alias-label-tertiary, #999)', flex: 'none' },
+            }, Math.floor(hi / 2) + 1 + (hIsRed ? '红' : '黑')),
+            react.createElement('span', {
+              style: { fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+            }, core.formatMove(s.moveHistory[hi]))));
+        }
+      }
+      var historyCol = react.createElement('div', {
+        style: {
+          width: 200, flex: 'none', alignSelf: 'stretch',
+          padding: '8px 10px', borderRadius: 10,
+          background: 'var(--dsw-alias-bg-layer-1, rgba(255,255,255,0.5))',
+          display: 'flex', flexDirection: 'column', minHeight: 0, maxHeight: 500,
+        },
+      },
+        react.createElement('div', { style: { fontSize: 12, fontWeight: 600, marginBottom: 4, flex: 'none' } }, '落子记录'),
+        react.createElement('div', { style: { overflowY: 'auto', flex: '1 1 auto', minHeight: 0 } }, histItems));
+    
       // 面板定位：记忆上次位置（0.2.0 修「界面不固定」），没有则默认右上角；
-      // 行走历史已迁到主页面右侧（history.js），本面板只留棋盘+控制
+      // 落子记录在棋盘右侧（0.2.1），本面板=棋盘+历史+控制一体
       if (!core.panelState.pos) {
         core.panelState.pos = core.loadPos() || {
-          x: Math.max(8, (window.innerWidth || 1200) - 560),
+          x: Math.max(8, (window.innerWidth || 1200) - 770),
           y: Math.max(8, 70),
         };
       }
@@ -1634,7 +1598,7 @@ window.__ModuleLoader__.load({
       return react.createElement('div', {
         style: {
           position: 'fixed', left: pos.x, top: pos.y, zIndex: 3000,
-          width: 540, maxWidth: 'calc(100vw - 16px)',
+          width: 748, maxWidth: 'calc(100vw - 16px)',
           maxHeight: 'calc(100vh - 24px)', overflowY: 'auto',
           background: 'var(--dsw-alias-bg-layer-3, #ffffff)',
           color: 'var(--dsw-alias-label-primary, inherit)',
@@ -1667,15 +1631,17 @@ window.__ModuleLoader__.load({
         react.createElement('div', { style: { padding: '6px 14px 14px' } },
           bubbleEl,
           react.createElement('div', { style: { fontSize: 14, fontWeight: 600 } }, statusText),
-          react.createElement('div', { style: { position: 'relative', width: 'max-content', maxWidth: '100%', margin: '6px auto 0' } },
-            react.createElement(boardMod.Board, {
-              board: s.board,
-              onCellClick: core.handleCell,
-              selectedSquare: s.selected,
-              legalMoves: s.legalMoves,
-              lastMove: s.lastMove,
-            }),
-            overlay),
+          react.createElement('div', { style: { display: 'flex', gap: 10, alignItems: 'stretch', margin: '6px 0 0' } },
+            react.createElement('div', { style: { position: 'relative', width: 'max-content', maxWidth: '100%', flex: 'none' } },
+              react.createElement(boardMod.Board, {
+                board: s.board,
+                onCellClick: core.handleCell,
+                selectedSquare: s.selected,
+                legalMoves: s.legalMoves,
+                lastMove: s.lastMove,
+              }),
+              overlay),
+            historyCol),
           controls,
           saveNodes,
           thinkingEl));
@@ -1897,14 +1863,13 @@ window.__ModuleLoader__.load({
     });
     __def("entry", function (module, exports, require) {
     // dsh-chess-xq —— client 半 · 插件入口（bundle 导出：inject / apply）
-    // 职责：apply 期建 1s 轮询（跨组件重挂载存活）+ 开局/首拉 + 四个槽位注册：
-    //   conversation.input.left（♟ 小开关）/ shell.overlay（对局浮窗）/ shell.overlay（右侧行走历史）/
+    // 职责：apply 期建 1s 轮询（跨组件重挂载存活）+ 开局/首拉 + 三个槽位注册：
+    //   conversation.input.left（♟ 小开关）/ shell.overlay（对局浮窗，棋盘+右侧落子记录一体）/
     //   settings.section（难度设置）。
-    // 纯编排：逻辑全在 core.js，组件全在 panel.js / history.js / ui.js。
+    // 纯编排：逻辑全在 core.js，组件全在 panel.js / ui.js。
     var react = require('react');
     var core = require('core');
     var Panel = require('panel');
-    var History = require('history');
     var UI = require('ui');
     
     exports.inject = ['slots'];
@@ -1952,18 +1917,6 @@ window.__ModuleLoader__.load({
             label: function () { return '天界象棋'; },
           },
           Panel.ChessPanel
-        );
-      });
-      // 行走历史：主页面右侧固定竖条（最新在上），与棋盘浮窗同开关
-      slots.inject('shell.overlay', function () {
-        return slots.register(
-          {
-            name: 'shell.overlay',
-            id: 'dsh-chess-xq-history',
-            order: 36,
-            label: function () { return '天界象棋·落子'; },
-          },
-          History.HistoryPanel
         );
       });
       slots.inject('settings.section', function () {

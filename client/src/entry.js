@@ -1,12 +1,11 @@
 // dsh-chess-xq —— client 半 · 插件入口（bundle 导出：inject / apply）
-// 职责：apply 期建 1s 轮询（跨组件重挂载存活）+ 开局/首拉 + 四个槽位注册：
-//   conversation.input.left（♟ 小开关）/ shell.overlay（对局浮窗）/ shell.overlay（右侧行走历史）/
+// 职责：apply 期建 1s 轮询（跨组件重挂载存活）+ 开局/首拉 + 三个槽位注册：
+//   conversation.input.left（♟ 小开关）/ shell.overlay（对局浮窗，棋盘+右侧落子记录一体）/
 //   settings.section（难度设置）。
-// 纯编排：逻辑全在 core.js，组件全在 panel.js / history.js / ui.js。
+// 纯编排：逻辑全在 core.js，组件全在 panel.js / ui.js。
 var react = require('react');
 var core = require('./core');
 var Panel = require('./panel');
-var History = require('./history');
 var UI = require('./ui');
 
 exports.inject = ['slots'];
@@ -54,18 +53,6 @@ exports.apply = function (ctx) {
         label: function () { return '天界象棋'; },
       },
       Panel.ChessPanel
-    );
-  });
-  // 行走历史：主页面右侧固定竖条（最新在上），与棋盘浮窗同开关
-  slots.inject('shell.overlay', function () {
-    return slots.register(
-      {
-        name: 'shell.overlay',
-        id: 'dsh-chess-xq-history',
-        order: 36,
-        label: function () { return '天界象棋·落子'; },
-      },
-      History.HistoryPanel
     );
   });
   slots.inject('settings.section', function () {
