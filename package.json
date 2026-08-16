@@ -1,0 +1,46 @@
+{
+  "name": "dsh-chess-xq-plugin",
+  "version": "0.1.0",
+  "description": "天界象棋：中国象棋人机对战小游戏，AI 执黑，莉娅有活台词，可悔棋/存档/调难度",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build:client": "node client/build.mjs"
+  },
+  "exports": {
+    ".": {
+      "default": "./index.js"
+    },
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json",
+    "./client": {
+      "default": "./client.js"
+    }
+  },
+  "files": [
+    "index.js",
+    "host",
+    "client.js",
+    "client",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "license": "MIT",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-slots",
+        "@deepseek-ai/dsh-client-runtime"
+      ],
+      "platform": "web"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-client-ui-slots": "0.1.0-rc.5",
+    "@deepseek-ai/dsh-client-runtime": "0.1.0-rc.5"
+  }
+}

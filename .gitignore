@@ -1,0 +1,6 @@
+# 依赖 / 构建产物 / 本地杂项（发布到 GitHub 前务必检查：本地图与本机路径一律不进仓库）
+node_modules/
+dist/
+*.tgz
+*.log
+.DS_Store
